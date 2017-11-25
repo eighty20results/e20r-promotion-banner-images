@@ -1,0 +1,60 @@
+/*
+ * *
+ *   * Copyright (c) 2017. - Eighty / 20 Results by Wicked Strong Chicks.
+ *   * ALL RIGHTS RESERVED
+ *   *
+ *   * This program is free software: you can redistribute it and/or modify
+ *   * it under the terms of the GNU General Public License as published by
+ *   * the Free Software Foundation, either version 3 of the License, or
+ *   * (at your option) any later version.
+ *   *
+ *   * This program is distributed in the hope that it will be useful,
+ *   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   * GNU General Public License for more details.
+ *   *
+ *   * You should have received a copy of the GNU General Public License
+ *   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/** Ads Image Banner Widget Stylesheet
+Plugin Name: Ads Image Banner Widget Plugin
+Plugin URI: http://skmukhiya.com.np/ads-image-banner-widget-plugin
+*/
+div.e20r-advanced-toggle{
+    color: #333;
+    margin-bottom:10px;
+    padding:5px;
+    border:1px solid skyblue;
+    border-radius:14px;
+    -moz-border-radius:14px;
+    -webkit-border-radius:14px;
+}
+.e20r-thumb{ background:url('../images/previewbackground.png') top left repeat; overflow:hidden; height:auto; position:relative; border:1px solid #999; font-size:18px; font-weight:bold; text-align:center; color:#fff; text-shadow:#333 0px 1px 1px; }
+.e20r-thumb img{
+	max-width: 80%;
+	max-height: 130px;
+	margin: 6px;
+	box-shadow: rgba(0,0,0,0.7) 0px 2px 6px;
+}
+#text_description{
+    border:1px solid #ccc;
+    padding:5px;
+    margin-top:-5px;
+}
+.e20r-overlay{ position:absolute; top:50px; left:78px; opacity: 0.7; }
+div.e20r-advanced-options{
+	padding:5px;
+	padding-top: 13px;
+    margin-top: 10px;
+}
+.widget-content small{color:#999;}
+a.help-link{ font-family: Verdana, Arial, sans-serif; font-size:10px; color:#999; cursor:help; }
+#widget-list .e20r-banner-widget-set .widget-top { border-color: #F90; }
+#widgets-right .e20r-banner-widget-set{ border-color:#f90; }
+.e20r-category-list { width: 100%; }
+.upload-button-wrap{ text-align:right; }
+.expander{ color:#27d; cursor:pointer; }
+.e20r-advanced-options{ border:1px solid #ddd; }
+.e20r-thumb > img{ width:252px; }
