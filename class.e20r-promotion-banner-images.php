@@ -3,7 +3,7 @@
 Plugin Name: E20R Promotion Banner Image Widget
 Plugin URI: http://eighty20results.com/paid-memberships-pro/do-it-for-me
 Description: Add widget area promotion images with timed visibility (when to start being visible and when to stop being visible). Optionally specify a title, the image, a description, etc.
-Version: 2.0
+Version: 2.1
 Author: Thomas Sjolshagen <thomas@eighty20results.com>
 Author URI: https://eighty20results.com/thomas-sjolshagen/
 Text Domain: e20r-promotion-banner-images
@@ -21,7 +21,7 @@ if ( ! defined( 'E20R_PLUGIN_BASENAME' ) ) {
 /**
  * Version is defined
  */
-define( 'E20R_PBI_VERSION', '2.0' );
+define( 'E20R_PBI_VERSION', '2.1' );
 
 if ( ! defined( 'E20R_PLUGIN_NAME' ) ) {
 	define( 'E20R_PLUGIN_NAME', trim( dirname( E20R_PLUGIN_BASENAME ), '/' ) );
@@ -60,7 +60,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 				'promotion_link'   => '',
 				'image_title'      => '',
 				'text_description' => '',
-				'category'         => 'e20r-show-all-categories',
+				'selected_cat'     => 'e20r-show-all-categories',
 				'home_page'        => 'on',
 				'auto_fit'         => 'on',
 				'target'           => '_self',
@@ -109,7 +109,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 			$after_widget     = null;
 			$before_title     = null;
 			$after_title      = null;
-			$category         = null;
+			$selected_cat     = null;
 			$promotion_link   = null;
 			$image_title      = null;
 			$alt_text         = null;
@@ -126,25 +126,27 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 			
 			$widget_options = wp_parse_args( $instance, $this->widget_defaults );
 			
-			extract( $widget_options, EXTR_SKIP );
+			extract( $widget_options, EXTR_OVERWRITE );
+			
+			error_log('Home Page: ' . print_r( $home_page, true ));
 			
 			$cat1 = ( is_home() && ( $home_page == 'on' ) );
-			$cat2 = ( ( is_category() || is_single() || is_page() ) && $category == 'e20r-show-all-categories' );
-			$cat3 = ( is_home() && $category == 'e20r-home-only' );
-			$cat4 = ( is_single() && in_category( $category, $post->ID ) );
-			$cat5 = ( is_category( $category ) );
-			$cat6 = is_page( $category );
+			$cat2 = ( ( is_category() || is_single() || is_page() ) && $selected_cat == 'e20r-show-all-categories' );
+			$cat3 = ( is_home() && $selected_cat == 'e20r-home-only' );
+			$cat4 = ( is_single() && in_category( $selected_cat, $post->ID ) );
+			$cat5 = ( is_category( $selected_cat ) );
+			$cat6 = is_page( $selected_cat );
 			
-			if ( get_category_by_slug( $category ) ) {
-				$exp = get_category_by_slug( $category )->cat_name . " Category";
-			} else if ( $category == "e20r-home-only" ) {
+			if ( get_category_by_slug( $selected_cat ) ) {
+				$exp = get_category_by_slug( $selected_cat )->cat_name . " Category";
+			} else if ( $selected_cat == "e20r-home-only" ) {
 				$exp = "Show on Homepage only";
-			} else if ( $category == "e20r-show-all-categories" ) {
+			} else if ( $selected_cat == "e20r-show-all-categories" ) {
 				$exp = "Show on all categories";
 			}
 			
-			if ( is_numeric( $category ) ) {
-				$exp = get_the_title( $category ) . " (#{$category})";
+			if ( is_numeric( $selected_cat ) ) {
+				$exp = get_the_title( $selected_cat ) . " (#{$selected_cat})";
 			}
 			
 			$timezone = get_option( 'timezone_string' );
@@ -159,11 +161,15 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 			
 			// Exit because the start time hasn't passed
 			if ( ! empty( $show_after ) && current_time( 'timestamp' ) < $show_after ) {
+				error_log( "Hiding. Not after the required time: {$show_after}" );
+				
 				return;
 			}
 			
 			// Exit because the end time has passed
 			if ( ! empty( $hide_as_of ) && current_time( 'timestamp' ) > $hide_as_of ) {
+				error_log( "Hiding (timeout). Is after the max time: {$hide_as_of}" );
+				
 				return;
 			}
 			
@@ -184,7 +190,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 				}
 				
 				printf(
-					'<img src="%1$s>" alt="%2$s" title="%3$s>" class="banner-image" %4$s />',
+					'<img src="%1$s" alt="%2$s" title="%3$s>" class="banner-image" %4$s />',
 					esc_url_raw( $image_url ),
 					esc_html( $alt_text ),
 					esc_html( $image_title ),
@@ -231,11 +237,13 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 		 */
 		public function update( $new_instance, $old_instance ) {
 			
+			error_log( "Saving: " . print_r( $new_instance, true ) );
+			
 			// Change to 'off' for settings
-			if ( !isset($new_instance['home_page']) || $new_instance['home_page'] == false ) {
+			if ( ! isset( $new_instance['home_page'] ) || $new_instance['home_page'] == false ) {
 				$new_instance['home_page'] = 'off';
 			}
-			if ( !isset($new_instance['auto_fit']) || $new_instance['auto_fit'] == false ) {
+			if ( ! isset( $new_instance['auto_fit'] ) || $new_instance['auto_fit'] == false ) {
 				$new_instance['auto_fit'] = 'off';
 			}
 			
@@ -257,14 +265,16 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 			$show_on          = date_i18n( 'Y-m-d', current_time( 'timestamp' ) );
 			$hide_after       = null;
 			$promotion_link   = null;
-			$category         = null;
+			$selected_cat     = null;
 			$text_description = null;
 			$alt_text         = null;
 			$image_title      = null;
 			$target           = null;
 			
-			$widget_options = wp_parse_args( $instance, $this->widget_defaults );
-			extract( $widget_options, EXTR_SKIP );
+			error_log("form instance: " . print_r( $instance, true ));
+			
+			$options = wp_parse_args( $instance, $this->widget_defaults );
+			extract( $options, EXTR_OVERWRITE );
 			
 			$image_url = ! empty( $instance['image_url'] ) ? $instance['image_url'] : null;
 			
@@ -274,7 +284,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
             <div class="e20r-promotion-banner-settings">
 				<?php
 				if ( empty( $image_url ) ) { ?>
-                <p>
+                    <p>
                     <div class="e20r-thumb">
                         <div class="e20r-overlay">
                             <span><?php _e( "Preview", "e20r-promotion-banner-images" ); ?></span>
@@ -282,7 +292,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 
                         <img class="e20r-embedded-img" src="<?php echo esc_url( $image_url ); ?>"/>
                     </div>
-                </p>
+                    </p>
 					<?php
 				} ?>
 
@@ -399,24 +409,24 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 					$options   = array();
 					$options[] = sprintf(
 						'<option value="e20r-show-all-categories" %1$s>%2$s</option>',
-						selected( 'e20r-show-all-categories', $category, false ),
+						selected( 'e20r-show-all-categories', $selected_cat, false ),
 						__( 'All categories', 'e20r-promotion-banner-images' )
 					);
 					$options[] = sprintf(
 						'<option value="e20r-home-only" %1$s>>%2$s</option>',
-						selected( 'e20r-home-only', $category, false ),
+						selected( 'e20r-home-only', $selected_cat, false ),
 						__( 'Homepage only', 'e20r-promotion-banner-images' )
 					);
 					
 					$categories = get_categories( '' );
 					
-					foreach ( $categories as $cat ) {
+					foreach ( $categories as $category ) {
 						
 						$options[] = sprintf(
 							'<option value="%1$s" %2$s>%3$s</option>',
-							$cat->category_nicename,
-							selected( $cat->category_nicename, $category, false ),
-							$cat->cat_name
+							$category->category_nicename,
+							selected( $category->category_nicename, $selected_cat, false ),
+							$category->cat_name
 						);
 					}
 					$select_options = implode( "\n", $options );
@@ -440,14 +450,14 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 					// Show label for drop-down
 					printf(
 						'<label for="%1$s">%2$s</label>',
-						$this->get_field_id( 'category' ),
+						$this->get_field_id( 'selected_cat' ),
 						__( 'Display for/on:', 'e20r-promotion-banner-images' )
 					);
 					
 					// Generate category & page drop-down
 					printf( '<select class="e20r-category-list" name="%1$s" id="%2$s">',
-						$this->get_field_name( 'category' ),
-						$this->get_field_id( 'category' )
+						$this->get_field_name( 'selected_cat' ),
+						$this->get_field_id( 'selected_cat' )
 					);
 					printf( '%s', $select_options );
 					printf( '</select>' );
@@ -482,10 +492,13 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
                 </p>
                 <p>
 					<?php
+                    error_log( "Home page: {$home_page}: " . ( $home_page ? 'Checked' : "Unchecked" ) );
+                    
+                    
 					printf( '<input type="checkbox" class="checkbox" id="%1$s" name="%2$s" %3$s />',
 						$this->get_field_id( 'home_page' ),
 						$this->get_field_name( 'home_page' ),
-						checked( 'on', $home_page, false )
+						checked( 1, $home_page, false )
 					);
 					printf( '<label for="%1$s">%2$s</label>',
 						$this->get_field_id( 'home_page' ),
@@ -496,10 +509,11 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 
                 <p>
 					<?php
+					error_log( "Fit to column: " . ( $auto_fit ? 'Checked' : "Unchecked" ) );
 					printf( '<input type="checkbox" class="checkbox" id="%1$s" name="%2$s" %3$s />',
 						$this->get_field_id( 'auto_fit' ),
 						$this->get_field_name( 'auto_fit' ),
-						checked( $auto_fit, 'on', false )
+						checked( $auto_fit, 1, false )
 					);
 					printf( '<label for="%1%s">%2$s</label>',
 						$this->get_field_id( 'auto_fit' ),
@@ -549,7 +563,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 								$this->get_field_id( 'target' ),
 								__( 'Link target:', 'e20r-promotion-banner-images' )
 							);
-       
+							
 							$select_options = array(
 								'_self'  => __( 'Current frame', 'e20r-promotion-banner-images' ),
 								'_blank' => __( 'New page/tab', 'e20r-promotion-banner-images' ),
@@ -559,18 +573,18 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 							
 							foreach ( $select_options as $ft => $label ) {
 								$options[] = sprintf(
-								        '<option value="%1$s" %2$s>%3$s</option>',
-                                        $ft,
-                                        selected( $ft, $target, false ),
-                                        $label
-                                );
+									'<option value="%1$s" %2$s>%3$s</option>',
+									$ft,
+									selected( $ft, $target, false ),
+									$label
+								);
 							}
 							
 							printf( '<select name="%1$s" id="%2$s">',
-                                $this->get_field_name( 'target' ),
-                                $this->get_field_id( 'target' )
-                            );
-							printf( "%s",implode( "\n", $options ) );
+								$this->get_field_name( 'target' ),
+								$this->get_field_id( 'target' )
+							);
+							printf( "%s", implode( "\n", $options ) );
 							printf( '</select>' );
 							?>
                         </p>
