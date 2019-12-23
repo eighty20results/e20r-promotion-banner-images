@@ -58,11 +58,11 @@ zip -r ${kit_name}.zip ${plugin_path}
 #cd ${debug_path}/..
 #zip -r ${debug_name}.zip ${plugin_path}-debug
 #cd ${dst_path}/..
-ssh ${server} "cd ./www/protected-content/ ; mkdir -p \"${short_name}\""
-scp ${kit_name}.zip ${server}:./www/protected-content/${short_name}/
-#scp ${kit_name}-debug.zip ${server}:./www/protected-content/${short_name}/
-scp ${metadata} ${server}:./www/protected-content/${short_name}/
-ssh ${server} "cd ./www/protected-content/ ; ln -sf \"${short_name}\"/\"${short_name}\"-\"${version}\".zip \"${short_name}\".zip"
+ssh ${server} "cd ./${server}/protected-content/ ; mkdir -p \"${short_name}\""
+scp ${kit_name}.zip ${server}:./${server}/protected-content/${short_name}/
+#scp ${kit_name}-debug.zip ${server}:./${server}/protected-content/${short_name}/
+scp ${metadata} ${server}:./${server}/protected-content/${short_name}/
+ssh ${server} "cd ./${server}/protected-content/ ; ln -sf \"${short_name}\"/\"${short_name}\"-\"${version}\".zip \"${short_name}\".zip"
 rm -rf ${dst_path}
 rm -rf ${debug_path}
 
