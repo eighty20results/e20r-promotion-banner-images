@@ -3,8 +3,8 @@ Contributors: eighty20results
 Donate link: https://eighty20results.com/wordpress-plugins/donations
 Tags: image banner sidebar, sidebar image, ad image shortcode, ,ads in sidebar
 Requires at least: 4.4
-Tested up to: 4.9
-Stable tag: 2.0
+Tested up to: 5.3
+Stable tag: 2.3
 
 Add scheduled image banners in widget areas on your site. You can upload or select images from the site Media Library, schedule the start or stop date for when the banner is supposed to be visible, set the title, etc.
 
@@ -57,6 +57,18 @@ Upload to the plugin folder, navigate to the "Plugins" section of your WordPress
 1. TBD
 
 = Change Log =
+
+== v2.3 ==
+
+* ENHANCEMENT: Support for PHP 7.2+
+
+== v2.2 ==
+
+* BUG FIX: Didn't show the image text
+
+== v2.1 ==
+
+* BUG FIX: Didn't load the widget properly
 
 == 2.0 ==
 

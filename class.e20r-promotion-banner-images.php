@@ -3,7 +3,7 @@
 Plugin Name: E20R Promotion Banner Image Widget
 Plugin URI: http://eighty20results.com/paid-memberships-pro/do-it-for-me
 Description: Add widget area promotion images with timed visibility (when to start being visible and when to stop being visible). Optionally specify a title, the image, a description, etc.
-Version: 2.1
+Version: 2.3
 Author: Thomas Sjolshagen <thomas@eighty20results.com>
 Author URI: https://eighty20results.com/thomas-sjolshagen/
 Text Domain: e20r-promotion-banner-images
@@ -21,7 +21,7 @@ if ( ! defined( 'E20R_PLUGIN_BASENAME' ) ) {
 /**
  * Version is defined
  */
-define( 'E20R_PBI_VERSION', '2.1' );
+define( 'E20R_PBI_VERSION', '2.3' );
 
 if ( ! defined( 'E20R_PLUGIN_NAME' ) ) {
 	define( 'E20R_PLUGIN_NAME', trim( dirname( E20R_PLUGIN_BASENAME ), '/' ) );
@@ -159,17 +159,13 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 			$show_after = ! empty( $show_on ) ? strtotime( "$show_on 00:00:00 {$timezone}", current_time( 'timestamp' ) ) : null;
 			$hide_as_of = ! empty( $hide_after ) ? strtotime( "{$hide_after} 23:59:59 {$timezone}", current_time( 'timestamp' ) ) : null;
 			
-			// Exit because the start time hasn't passed
-			if ( ! empty( $show_after ) && current_time( 'timestamp' ) < $show_after ) {
-				error_log( "Hiding. Not after the required time: {$show_after}" );
-				
-				return;
-			}
+			$hide = ( ! empty( $show_after ) && current_time( 'timestamp' ) < $show_after );
+			$hide = $hide || ( ! empty( $hide_as_of ) && current_time( 'timestamp' ) > $hide_as_of );
 			
-			// Exit because the end time has passed
-			if ( ! empty( $hide_as_of ) && current_time( 'timestamp' ) > $hide_as_of ) {
-				error_log( "Hiding (timeout). Is after the max time: {$hide_as_of}" );
-				
+			// Hide this widget
+			if ( true === $hide ) {
+				error_log( "Hiding widget!" );
+				add_filter( 'widget_title', array( $this, 'removeWidgetTitle' ) );
 				return;
 			}
 			
@@ -190,7 +186,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 				}
 				
 				printf(
-					'<img src="%1$s" alt="%2$s" title="%3$s>" class="banner-image" %4$s />',
+					'<img src="%1$s" alt="%2$s" title="%3$s" class="banner-image" %4$s />',
 					esc_url_raw( $image_url ),
 					esc_html( $alt_text ),
 					esc_html( $image_title ),
@@ -226,6 +222,22 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 		}
 		
 		/**
+         * Strip the widget title string
+         *
+		 * @param string $widget_title
+         *
+         * @return string
+		 */
+		public function removeWidgetTitle( $widget_title ) {
+			
+			if ( substr( $widget_title, 0, 1 ) == '!' ) {
+				return;
+			} else {
+				return $widget_title;
+			}
+		}
+		
+		/**
 		 * Process settings when saving them in the widget
 		 *
 		 * @param array $new_instance
@@ -236,9 +248,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 		 * @see WP_Widget::update
 		 */
 		public function update( $new_instance, $old_instance ) {
-			
-			error_log( "Saving: " . print_r( $new_instance, true ) );
-			
+		 
 			// Change to 'off' for settings
 			if ( ! isset( $new_instance['home_page'] ) || $new_instance['home_page'] == false ) {
 				$new_instance['home_page'] = 'off';
@@ -636,7 +646,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 				)
 			);
 			
-			register_widget( 'EBPI' );
+			register_widget( 'E20R\Promotion_Banners\EBPI' );
 			
 			$presentation = array(
 				'before_widget' => '<div class="box widget">',
@@ -646,7 +656,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 			);
 			
 			ob_start();
-			the_widget( 'EBPI', $presentation, $atts );
+			the_widget( 'E20R\Promotion_Banners\EBPI', $presentation, $atts );
 			
 			return ob_get_clean();
 		}
@@ -657,7 +667,7 @@ if ( ! class_exists( 'E20R\Promotion_Banners\EBPI' ) ) {
 /**
  * Initiate this widget
  **/
-add_action( 'widgets_init', create_function( '', 'return register_widget( new E20R\Promotion_Banners\EBPI() );' ) );
+add_action( 'widgets_init', function() { return register_widget( new E20R\Promotion_Banners\EBPI() );  } );
 
 // Load one-click update support for this BETA from a custom repository
 if ( file_exists( plugin_dir_path( __FILE__ ) . "includes/plugin-updates/plugin-update-checker.php" ) ) {

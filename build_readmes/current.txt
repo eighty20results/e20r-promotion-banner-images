@@ -1,3 +1,1 @@
-BUG FIX: Incorrect handling of checkboxes
-BUG FIX: Various translation label updates/fixes
-ENHANCEMENT: More natural(?) variable names for shortcode attributes
+ENHANCEMENT: Support for PHP 7.2+
